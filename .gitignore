@@ -5,3 +5,6 @@ data/
 
 .claude/
 *.log
+public/vendor/
+.vercel/
+.env*

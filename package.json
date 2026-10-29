@@ -4,9 +4,13 @@
   "description": "Shine UE School — Шинэ жилийн ханхүү, гүнж сонгох вэб",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "node scripts/copy-vendor.js"
   },
   "dependencies": {
     "gsap": "3.13.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
