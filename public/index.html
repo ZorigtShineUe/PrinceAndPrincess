@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Шинэ жил 2027 — Shine UE School</title>
+  <meta name="description" content="Shine UE School-ийн 2027 оны шинэ жилийн ханхүү, гүнжийг сонгох санал хураалт.">
+  <link rel="icon" href="/img/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <canvas class="fx-canvas" id="snow" aria-hidden="true"></canvas>
+  <canvas class="fx-canvas" id="fireworks" aria-hidden="true"></canvas>
+
+  <section class="stage" id="stage" aria-label="Шинэ жилийн мэндчилгээ">
+    <div class="stage-tree"><svg class="tree-svg" id="tree" style="visibility:hidden" role="img" aria-label="Чимэглэсэн гацуур мод"></svg></div>
+    <div class="stage-title">
+      <h1><span class="greet">Шинэ жилийн мэнд хүргэе</span><span class="year">2027</span></h1>
+    </div>
+  </section>
+
+  <button class="skip-intro" id="skip" type="button">Санал өгөх рүү шилжих</button>
+
+  <main class="ballot" id="ballot" aria-live="polite"></main>
+
+  <div class="timer" id="timer" role="timer" hidden>
+    <span>Ялагч тодрох хүртэл</span>
+    <b id="timer-value">2:00</b>
+  </div>
+
+  <div class="tray" id="tray" role="region" aria-label="Таны сонголт">
+    <div class="tray-picks">
+      <span data-pick="prince">Ханхүү: <b id="pick-prince">сонгоогүй</b></span>
+      <span data-pick="princess">Гүнж: <b id="pick-princess">сонгоогүй</b></span>
+    </div>
+    <button class="btn" id="submit" type="button" disabled>Санал өгөх</button>
+  </div>
+
+  <dialog class="dialog" id="confirm">
+    <form method="dialog" class="dialog-body">
+      <h3>Саналаа баталгаажуулах уу?</h3>
+      <p>Санал нэг л удаа өгөх ба дараа нь өөрчлөх боломжгүй.</p>
+      <div class="pair">
+        <div><small>Ханхүү</small><strong id="confirm-prince"></strong></div>
+        <div><small>Гүнж</small><strong id="confirm-princess"></strong></div>
+      </div>
+      <p class="error-text" id="confirm-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="btn ghost" value="cancel">Буцах</button>
+        <button class="btn" id="confirm-yes" value="vote">Санал өгөх</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="curtains" aria-hidden="true">
+    <div class="curtain left"></div>
+    <div class="curtain right"></div>
+    <div class="valance-trim"></div>
+    <div class="valance"></div>
+  </div>
+
+  <canvas class="fx-canvas front" id="confetti" aria-hidden="true"></canvas>
+
+  <script src="/vendor/gsap/gsap.min.js"></script>
+  <script src="/vendor/gsap/DrawSVGPlugin.min.js"></script>
+  <script src="/vendor/gsap/MotionPathPlugin.min.js"></script>
+  <script src="/vendor/gsap/Physics2DPlugin.min.js"></script>
+  <script src="/vendor/gsap/EasePack.min.js"></script>
+  <script src="/js/fx.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/curtains.js"></script>
+  <script src="/js/tree-svg.js"></script>
+  <script src="/js/tree.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+/* Shine UE School — Шинэ жил 2027
+   «Щелкунчик» балетын тайз: улаан хилэн хөшиг, алтан чимэглэл, лааны гэрэл.
+   Ханхүү — Щелкунчикийн улаан цэргийн хувцас, гүнж — маргад ногоон. */
+:root {
+  --ink: #1c0609;
+  --wine: #430b16;
+  --velvet: #8e1426;
+  --gold: #d8a93b;
+  --gold-soft: #f2d48a;
+  --ivory: #f7ecd8;
+  --muted: #d9b9a2;
+  --emerald: #1d6b4c;
+  --emerald-deep: #0e3d2c;
+  --crimson: #c8283d;
+  --gilt: linear-gradient(180deg, #f8e4a6 0%, #e2b955 45%, #b07f2c 100%);
+  --font-display: 'Yeseva One', 'Times New Roman', serif;
+  --font-body: 'Lora', Georgia, serif;
+  --gutter: clamp(16px, 4vw, 48px);
+  /* хөшиг нээгдсэний дараа хажуу талд үлдэх өргөн, дээд хөшигний өндөр */
+  --edge: clamp(14px, 4.5vw, 72px);
+  --valance-h: clamp(40px, 8vh, 78px);
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  /* дээрээс тусах лааны алтан гэрэл + хилэн тайзны гүн */
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 30%, rgba(242, 212, 138, .16), transparent 70%) fixed,
+    radial-gradient(120% 90% at 50% 0%, var(--wine) 0%, var(--ink) 65%) fixed,
+    var(--ink);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  font-synthesis-weight: none; /* Yeseva One нэг л жинтэй — хуурамч тод үсэг гаргахгүй */
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---------- хилэн хөшиг ---------- */
+.curtains { position: fixed; inset: 0; pointer-events: none; z-index: 30; overflow: hidden; }
+.curtain {
+  position: absolute; top: 0; bottom: 0; width: 51vw;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .45), transparent 22%, transparent 78%, rgba(0, 0, 0, .55)),
+    repeating-linear-gradient(90deg, #4a0711 0, #7d1121 1.3vw, #b51f36 2.1vw, #8e1426 2.9vw, #4a0711 4.2vw);
+}
+.curtain::after { /* алтан хүрээ, сэглээ */
+  content: ''; position: absolute; top: 0; bottom: 0; width: 10px;
+  background: repeating-linear-gradient(180deg, #f2d48a 0 5px, #b07f2c 5px 8px);
+  box-shadow: 0 0 14px rgba(0, 0, 0, .6);
+}
+.curtain.left { left: 0; }
+.curtain.left::after { right: 0; }
+.curtain.right { right: 0; }
+.curtain.right::after { left: 0; }
+
+/* дээд хөшиг: хилэн долгио, доор нь алтан зах */
+.valance, .valance-trim {
+  position: absolute; top: 0; left: 0; right: 0;
+  -webkit-mask: radial-gradient(ellipse 50% 100% at 50% 0, #000 97%, transparent 100%) 0 0 / clamp(110px, 14vw, 200px) 100% repeat-x;
+  mask: radial-gradient(ellipse 50% 100% at 50% 0, #000 97%, transparent 100%) 0 0 / clamp(110px, 14vw, 200px) 100% repeat-x;
+}
+.valance-trim { height: calc(var(--valance-h) + 7px); background: var(--gilt); }
+.valance {
+  height: var(--valance-h);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .35), transparent 60%),
+    repeating-linear-gradient(90deg, #5a0915 0, #a01b30 .9vw, #6e0e1c 1.8vw);
+}
+
+button { font: inherit; cursor: pointer; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- цас / конфетти канвас ---------- */
+.fx-canvas {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.fx-canvas.front { z-index: 50; }
+
+/* ---------- гацуур мод ---------- */
+.tree-svg { width: 100%; height: 100%; overflow: visible; }
+.tree-svg .garland { stroke: var(--gold-soft); stroke-width: 1.4; fill: none; opacity: .75; }
+.tree-svg .bulb { fill: var(--gold-soft); }
+.tree-svg .string { stroke: var(--gold-soft); stroke-width: 1; opacity: .8; }
+.tree-svg .orn-glyph {
+  font-family: var(--font-display); font-weight: 700; font-size: 11px;
+  fill: var(--gold); text-anchor: middle; dominant-baseline: central;
+}
+
+/* ---------- нүүр хэсэг (интро) ---------- */
+.stage {
+  position: fixed; inset: 0 auto 0 0; width: 100vw; height: 100vh; height: 100dvh;
+  display: grid; grid-template-rows: 1fr auto;
+  justify-items: center; padding: calc(var(--valance-h) + 12px) var(--gutter) 28px;
+  z-index: 1;
+}
+.stage-tree { width: min(78vw, 50vh, 440px); align-self: center; }
+.stage-title { text-align: center; }
+.stage-title h1 {
+  margin: 0; font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(28px, 5vh, 48px); line-height: 1.1; letter-spacing: .01em;
+}
+.stage-title .year {
+  display: block;
+  font-size: clamp(56px, 11vh, 120px); line-height: 1; letter-spacing: .04em;
+}
+.skip-intro {
+  position: fixed; right: calc(var(--edge) + 14px); bottom: 20px; z-index: 40;
+  background: rgba(28, 6, 9, .6); border: 1px solid rgba(216, 169, 59, .5); color: var(--gold-soft);
+  padding: 8px 16px; border-radius: 999px; font-size: 14px;
+}
+.skip-intro:hover { color: var(--ivory); border-color: var(--ivory); }
+
+.stage-title .greet { display: block; }
+.stage-title h1, .stage-title .year { transition: font-size .9s cubic-bezier(.6, 0, .2, 1); }
+
+/* интро дууссаны дараа мод зүүн тал руу шилжинэ */
+body.voting .stage-title h1 { font-size: clamp(22px, 3.2vh, 32px); }
+body.voting .stage-title .year { font-size: clamp(44px, 7vh, 76px); }
+@media (min-width: 900px) {
+  body.voting .stage { width: 40vw; }
+  body.voting .stage-tree { width: min(30vw, 46vh, 380px); }
+}
+@media (max-width: 899px) {
+  body.voting .stage { opacity: .14; }
+  body.voting .stage-title { visibility: hidden; } /* нэрсийн ард давхцахгүй */
+}
+
+/* ---------- санал өгөх хэсэг ---------- */
+.ballot {
+  position: relative; z-index: 2;
+  margin-left: 40vw;
+  padding: calc(var(--valance-h) + 36px) calc(var(--gutter) + var(--edge)) 140px var(--gutter);
+  max-width: 1100px; visibility: hidden;
+}
+.ballot-head { max-width: 640px; margin-bottom: 40px; }
+.ballot-head h2 {
+  margin: 0 0 12px; font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(38px, 4.6vw, 60px); line-height: 1.05;
+}
+.ballot-head p { margin: 0; color: var(--muted); max-width: 52ch; }
+
+.round { margin-bottom: 56px; }
+.round h3 {
+  display: flex; align-items: baseline; gap: 14px; margin: 0 0 22px;
+  font-family: var(--font-display); font-weight: 400; font-size: 32px; color: var(--gold);
+}
+/* хоёр талдаа алтан зураастай гарчиг — тайзны хөтөлбөрийн хуудас шиг */
+.round h3::after { content: ''; flex: 1; height: 1px; align-self: center; background: linear-gradient(90deg, rgba(216, 169, 59, .6), transparent); }
+.round { scroll-margin-top: calc(var(--valance-h) + 20px); }
+body.has-timer .round { scroll-margin-top: calc(var(--valance-h) + 150px); }
+
+/* 1-р алхам: тэнхимийн жагсаалт — тайзны хөтөлбөрийн хуудас шиг алтан зураастай мөрүүд */
+.dept-menu { list-style: none; margin: 0; padding: 0; max-width: 560px; border-top: 1px solid rgba(216, 169, 59, .4); }
+.dept-item {
+  width: 100%; display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: center;
+  padding: 16px 12px; background: none; border: 0; border-bottom: 1px solid rgba(216, 169, 59, .4);
+  color: var(--ivory); text-align: left; transition: background .2s;
+}
+.dept-item:hover { background: rgba(216, 169, 59, .08); }
+.dept-name { font-family: var(--font-display); font-size: 22px; line-height: 1.2; }
+.dept-meta { grid-row: 2; font-size: 14px; font-style: italic; color: var(--muted); }
+.dept-meta b { font-style: normal; font-weight: 600; color: var(--gold-soft); }
+.chev { grid-row: 1 / 3; grid-column: 2; font-size: 30px; line-height: 1; color: var(--gold); transition: transform .2s; }
+.dept-item:hover .chev { transform: translateX(4px); }
+.dept-item.has-pick { background: rgba(216, 169, 59, .1); }
+
+/* 2-р алхам: буцах товч + сонгосон тэнхим */
+.step-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.back-btn {
+  background: rgba(28, 6, 9, .6); border: 1px solid rgba(216, 169, 59, .65); color: var(--gold-soft);
+  border-radius: 999px; padding: 8px 20px 8px 14px; font-size: 15px;
+}
+.back-btn:hover { background: rgba(216, 169, 59, .14); }
+.step-dept { font-family: var(--font-display); font-size: 22px; }
+
+.round h3 small { font-family: var(--font-body); font-size: 15px; font-weight: 400; color: var(--muted); }
+
+.candidates {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 36px 24px; list-style: none; margin: 0; padding: 0;
+}
+
+/* дахин санал хураалт: тэнцсэн хүмүүс дэлгэцийг тэнцүү хуваана */
+.candidates.split {
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  max-width: calc(var(--cols) * 280px); gap: 24px;
+}
+.candidates.split li + li { border-left: 1px solid rgba(216, 169, 59, .25); }
+.candidates.split .shield-wrap { max-width: 240px; }
+.candidates.split .candidate .name { font-size: clamp(24px, 3vw, 34px); }
+.candidates.split .candidate .surname { font-size: .55em; }
+.candidates.split .crown { width: 60px; height: 36px; }
+.candidates.split .candidate { padding-top: 40px; }
+
+.candidate {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: 100%; padding: 26px 4px 6px; background: none; border: 0; color: inherit;
+  text-align: center; border-radius: 14px;
+}
+/* .candidate-ийн opacity-г GSAP удирддаг тул бүдгэрүүлэхийг дотор элементүүдэд хийнэ */
+.candidate > * { transition: opacity .3s; }
+.candidates.has-choice .candidate:not(.chosen) > * { opacity: .5; }
+.candidates.has-choice .candidate:not(.chosen):hover > * { opacity: .85; }
+
+.crown {
+  position: absolute; top: 0; left: 50%; width: 46px; height: 28px;
+  transform: translateX(-50%); overflow: visible;
+}
+.crown path { fill: none; stroke: var(--gold); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+
+.shield-wrap { position: relative; width: 100%; max-width: 168px; aspect-ratio: 5 / 6; }
+/* ханхүү — Щелкунчикийн улаан цэргийн хувцас, гүнж — маргад ногоон */
+.shield {
+  position: absolute; inset: 0; clip-path: url(#shield-clip);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .12), transparent 55%),
+    linear-gradient(160deg, var(--crimson), var(--velvet) 55%, var(--wine));
+  display: grid; place-items: center;
+}
+.candidate[data-role="princess"] .shield {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .12), transparent 55%),
+    linear-gradient(160deg, #2a8a63, var(--emerald) 55%, var(--emerald-deep));
+}
+.shield img { width: 100%; height: 100%; object-fit: cover; }
+.shield .initials {
+  font-family: var(--font-display); font-size: 44px; color: var(--gold-soft);
+}
+.shield-line {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;
+}
+.shield-line path { fill: none; stroke: rgba(216, 169, 59, .7); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.shield-line path.sel { stroke: var(--gold-soft); stroke-width: 4; filter: drop-shadow(0 0 6px rgba(242, 212, 138, .7)); }
+
+.candidate .name {
+  margin-top: 14px; font-family: var(--font-display); font-weight: 400;
+  font-size: 23px; line-height: 1.15;
+}
+.candidate .surname { display: block; font-family: var(--font-body); font-size: 14px; font-style: italic; color: var(--muted); margin-bottom: 2px; }
+.candidate .dept { margin-top: 6px; font-size: 13.5px; color: var(--muted); line-height: 1.35; }
+
+/* тоолуур: хугацаа дуусахад ялагчид автоматаар тодорно */
+.timer {
+  position: fixed; z-index: 35; top: calc(var(--valance-h) + 14px); right: calc(var(--edge) + var(--gutter));
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 34px 14px; border-radius: 22px;
+  background: rgba(28, 6, 9, .88); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(216, 169, 59, .7); box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  font-size: 15px; font-style: italic; color: var(--muted);
+}
+.timer[hidden] { display: none; }
+body.has-timer .ballot { padding-top: calc(var(--valance-h) + 170px); } /* тоолуур гарчгийг бүү халхал */
+.timer b {
+  font-family: var(--font-display); font-weight: 400; font-style: normal; line-height: 1;
+  font-size: clamp(56px, 6vw, 84px);
+  font-variant-numeric: tabular-nums; min-width: 3ch; text-align: center;
+  background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.timer.urgent { border-color: var(--crimson); animation: timer-pulse 1s ease-in-out infinite; }
+@keyframes timer-pulse { 50% { box-shadow: 0 0 0 6px rgba(200, 40, 61, .35), 0 8px 24px rgba(0, 0, 0, .4); } }
+
+/* доод самбар */
+.tray {
+  position: fixed; left: 40vw; right: 0; bottom: 0; z-index: 10;
+  display: flex; align-items: center; gap: 20px; justify-content: space-between;
+  padding: 16px calc(var(--gutter) + var(--edge)) calc(16px + env(safe-area-inset-bottom)) var(--gutter);
+  background: rgba(28, 6, 9, .86); backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(216, 169, 59, .25);
+  transform: translateY(110%);
+}
+.tray-picks { display: flex; gap: 28px; font-size: 15px; color: var(--muted); flex-wrap: wrap; }
+.tray-picks b { color: var(--ivory); font-weight: 500; }
+
+.btn {
+  border: 0; border-radius: 999px; padding: 14px 30px; font-weight: 600; font-size: 16px;
+  background: var(--gilt); color: var(--ink); white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 6px 18px rgba(0, 0, 0, .35);
+  transition: transform .15s, filter .2s;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--gold-soft); border: 1px solid rgba(216, 169, 59, .6); box-shadow: none; }
+.btn.ghost:hover { background: rgba(217, 185, 162, .12); }
+.btn.danger { background: var(--crimson); color: #fff; }
+
+/* баталгаажуулах цонх */
+.dialog {
+  border: 1px solid rgba(216, 169, 59, .55); padding: 0; border-radius: 20px;
+  background: linear-gradient(180deg, var(--wine), var(--ink)); color: var(--ivory);
+  max-width: min(480px, calc(100vw - 32px)); width: 100%;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+}
+.dialog::backdrop { background: rgba(14, 3, 5, .7); backdrop-filter: blur(4px); }
+.dialog-body { padding: 28px; }
+.dialog h3 { margin: 0 0 8px; font-family: var(--font-display); font-size: 30px; }
+.dialog p { margin: 0 0 20px; color: var(--muted); }
+.dialog .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.dialog .pair div { border-left: 2px solid var(--gold); padding-left: 12px; }
+.dialog .pair small { display: block; color: var(--muted); font-size: 13px; }
+.dialog .pair strong { font-family: var(--font-display); font-size: 22px; }
+.dialog-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* баярлалаа / ялагч */
+.notice { max-width: 640px; }
+.notice h2 { margin: 0 0 12px; font-family: var(--font-display); font-size: clamp(38px, 5vw, 60px); line-height: 1.05; }
+.notice p { color: var(--muted); margin: 0 0 28px; }
+.my-picks { display: flex; gap: 40px; flex-wrap: wrap; }
+.my-picks .candidate { width: 170px; padding-top: 30px; }
+
+.winners { display: flex; gap: clamp(32px, 6vw, 96px); flex-wrap: wrap; }
+.winner-group h3 { margin: 0 0 6px; font-family: var(--font-display); color: var(--gold); font-size: 30px; }
+.winner-group .candidate { width: 200px; }
+.votes { margin-top: 4px; color: var(--gold-soft); font-size: 14px; }
+
+.error-text { color: #ffb3a8; min-height: 1.4em; margin: 0 0 12px; font-size: 15px; }
+
+/* гол гарчгууд алтадсан */
+.stage-title .year, .ballot-head h2, .notice h2, .winner-group h3, .dialog h3 {
+  background: var(--gilt);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+
+/* ---------- гар утас ---------- */
+@media (max-width: 899px) {
+  .ballot { margin-left: 0; padding-left: calc(var(--gutter) + var(--edge)); text-align: center; }
+  .tray { left: 0; flex-direction: column; align-items: stretch; gap: 12px; padding-left: calc(var(--gutter) + var(--edge)); }
+  .tray-picks { justify-content: center; }
+  .tray .btn { width: 100%; }
+  .timer { right: auto; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 10px 40px 12px; }
+  .timer b { font-size: 64px; }
+
+  /* гар утсан дээр бүх агуулга голдоо */
+  .ballot-head, .notice { margin-left: auto; margin-right: auto; }
+  .ballot-head p { margin-left: auto; margin-right: auto; }
+  .round h3 { justify-content: center; flex-wrap: wrap; row-gap: 2px; }
+  .round h3::after { display: none; }
+  .candidates:not(.split) { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px 14px; }
+  .candidates:not(.split) > li { width: calc(50% - 7px); }
+  .candidates.split { margin-left: auto; margin-right: auto; }
+  .dept-menu { margin: 0 auto; }
+  .dept-item { text-align: center; grid-template-columns: 30px 1fr 30px; }
+  .dept-name, .dept-meta { grid-column: 2; }
+  .chev { grid-column: 3; }
+  .step-bar { justify-content: center; }
+  .candidate .name { font-size: 21px; }
+  .my-picks, .winners { justify-content: center; }
+  .winner-group { display: flex; flex-direction: column; align-items: center; }
+  .winner-group > div, .winner-group .candidate { margin-left: auto; margin-right: auto; }
+  .my-picks .candidate, .winner-group .candidate { width: 150px; }
+  .dialog .pair { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

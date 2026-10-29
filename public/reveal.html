@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тодруулга — Ханхүү, Гүнж 2027</title>
+  <link rel="icon" href="/img/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { overflow: hidden; height: 100vh; }
+    .wait {
+      position: relative; z-index: 2; height: 100vh; display: grid;
+      grid-template-columns: minmax(260px, 40vw) 1fr; align-items: center; gap: 4vw;
+      padding: var(--valance-h) calc(var(--edge) + 4vw) 0;
+    }
+    .wait .tree-box { height: 78vh; }
+    .wait h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(46px, 6.6vw, 104px); line-height: 1.02; }
+    .wait h1 .year { display: block; }
+    .wait .count { margin-top: 4vh; font-size: clamp(20px, 2vw, 30px); color: var(--muted); font-style: italic; }
+    .wait .count b { font-family: var(--font-display); font-style: normal; font-weight: 400; color: var(--gold-soft); font-size: 1.8em; margin-right: 10px; }
+    .big-timer { margin: 4vh 0 0; display: flex; flex-direction: column; gap: .5vh; }
+    .big-timer[hidden] { display: none; }
+    .big-timer span { color: var(--muted); font-style: italic; font-size: clamp(18px, 1.8vw, 28px); }
+    .big-timer b {
+      font-family: var(--font-display); font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums;
+      font-size: clamp(130px, 28vh, 320px);
+      background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .5));
+    }
+    .big-timer.urgent b { animation: big-pulse 1s ease-in-out infinite; }
+    @keyframes big-pulse { 50% { transform: scale(1.06); filter: drop-shadow(0 0 22px rgba(200, 40, 61, .85)); } }
+    .big-timer b { display: inline-block; transform-origin: left center; }
+    /* тоолуур явж байхад гарчиг жижгэрч, тоолуур тайзны гол дүр болно */
+    .wait:has(.big-timer:not([hidden])) h1 { font-size: clamp(36px, 4.4vw, 70px); }
+    .wait:has(.big-timer:not([hidden])) .count { margin-top: 2vh; }
+    .round-note { margin: 2vh 0 0; color: var(--gold-soft); font-size: clamp(18px, 1.8vw, 28px); }
+    .tie-note { margin: 1vh 0 0; color: var(--gold-soft); font-style: italic; font-size: clamp(16px, 2.2vh, 26px); visibility: hidden; }
+
+    /* 3-2-1 нь хаалттай хөшиг дээр алтаар гарна */
+    .countdown {
+      position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; pointer-events: none;
+      font-family: var(--font-display); font-size: 38vh; line-height: 1; visibility: hidden;
+      background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 6px 24px rgba(0, 0, 0, .6));
+    }
+
+    .stage-final {
+      position: fixed; inset: 0; z-index: 3; display: grid; grid-template-rows: auto 1fr;
+      justify-items: center; padding: calc(var(--valance-h) + 3vh) calc(var(--edge) + 3vw) 4vh; visibility: hidden;
+    }
+    .stage-final h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(32px, 5vh, 58px); color: var(--ivory); }
+    .duo { display: flex; gap: 8vw; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .duo .side { display: flex; flex-direction: column; align-items: center; }
+    .duo .side h3 {
+      margin: 0 0 1vh; font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 4.6vh, 54px); visibility: hidden;
+    }
+    .duo .side .people { display: flex; gap: 3vw; }
+    .duo .candidate { width: min(30vh, 22vw); padding-top: 6vh; }
+    .duo .crown { width: 12vh; height: 7.3vh; }
+    .duo .shield-wrap { max-width: none; }
+    .duo .shield .initials { font-size: 10vh; }
+    .duo .candidate .name { font-size: clamp(30px, 5vh, 58px); margin-top: 2vh; }
+    .duo .candidate .surname { font-size: .42em; }
+    .duo .candidate .dept { font-size: clamp(16px, 2.2vh, 24px); }
+    .duo .votes { font-size: clamp(16px, 2vh, 22px); }
+    .duo .shield-line path.sel { stroke-width: 6; }
+
+    .wait h1 .year, .stage-final h2 .year, .duo .side h3 {
+      background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    .reveal-btn { position: fixed; right: calc(var(--edge) + 20px); bottom: 24px; z-index: 40; }
+    @media (max-width: 760px) {
+      body { overflow: auto; height: auto; }
+      .wait { grid-template-columns: 1fr; padding-top: calc(var(--valance-h) + 24px); height: auto; min-height: 100vh; text-align: center; }
+      .wait .tree-box { height: 50vh; }
+      .big-timer { align-items: center; }
+      .big-timer b { transform-origin: center; font-size: 30vw; }
+      .stage-final { overflow-y: auto; text-align: center; }
+      .duo { flex-direction: column; gap: 4vh; }
+      .duo .side .people { justify-content: center; flex-wrap: wrap; }
+      .duo .candidate { width: 40vw; }
+      .reveal-btn { right: 50%; transform: translateX(50%); }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="fx-canvas" id="snow" aria-hidden="true"></canvas>
+  <canvas class="fx-canvas" id="fireworks" aria-hidden="true"></canvas>
+
+  <section class="wait" id="wait">
+    <div class="tree-box"><svg class="tree-svg" id="tree" style="visibility:hidden" aria-hidden="true"></svg></div>
+    <div>
+      <h1>Ханхүү, Гүнж <span class="year">2027</span></h1>
+      <p class="count"><b id="count">0</b>хүн санал өгсөн</p>
+      <p class="round-note" id="round-note" hidden></p>
+      <p class="big-timer" id="big-timer" role="timer" hidden>
+        <span>Ялагч тодрох хүртэл</span>
+        <b id="big-timer-value">2:00</b>
+      </p>
+    </div>
+  </section>
+
+  <div class="countdown" id="countdown" aria-live="assertive"></div>
+
+  <section class="stage-final" id="final" aria-live="polite">
+    <div style="text-align:center">
+      <h2><span class="year">2027</span> оны шинэ жилийн</h2>
+      <p class="tie-note" id="tie-note"></p>
+    </div>
+    <div class="duo">
+      <div class="side" data-side="prince"><h3>Ханхүү</h3><div class="people"></div></div>
+      <div class="side" data-side="princess"><h3>Гүнж</h3><div class="people"></div></div>
+    </div>
+  </section>
+
+  <button class="btn reveal-btn" id="reveal-btn" type="button" hidden>Тоолуур эхлүүлэх</button>
+
+  <div class="curtains" aria-hidden="true">
+    <div class="curtain left"></div>
+    <div class="curtain right"></div>
+    <div class="valance-trim"></div>
+    <div class="valance"></div>
+  </div>
+
+  <canvas class="fx-canvas front" id="confetti" aria-hidden="true"></canvas>
+
+  <script src="/vendor/gsap/gsap.min.js"></script>
+  <script src="/vendor/gsap/DrawSVGPlugin.min.js"></script>
+  <script src="/vendor/gsap/MotionPathPlugin.min.js"></script>
+  <script src="/vendor/gsap/Physics2DPlugin.min.js"></script>
+  <script src="/vendor/gsap/EasePack.min.js"></script>
+  <script src="/js/fx.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/curtains.js"></script>
+  <script src="/js/tree-svg.js"></script>
+  <script src="/js/tree.js"></script>
+  <script src="/js/reveal.js"></script>
+</body>
+</html>

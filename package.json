@@ -1,0 +1,12 @@
+{
+  "name": "shine-jil-khankhuu",
+  "version": "1.0.0",
+  "description": "Shine UE School — Шинэ жилийн ханхүү, гүнж сонгох вэб",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "gsap": "3.13.0"
+  }
+}

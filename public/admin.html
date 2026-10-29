@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Удирдлага — Ханхүү, Гүнж 2027</title>
+  <link rel="icon" href="/img/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { font-size: 15.5px; }
+    .admin { max-width: 1180px; margin: 0 auto; padding: 28px var(--gutter) 80px; }
+    .admin-top { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+    .admin-top img { width: 48px; height: 48px; border-radius: 50%; }
+    .admin-top h1 { margin: 0; font-family: var(--font-display); font-size: 34px; flex: 1; }
+    .admin-top a { color: var(--gold-soft); }
+    h2 { font-family: var(--font-display); font-size: 28px; margin: 0 0 4px; }
+    .hint { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+    section.block { padding: 26px 0; border-top: 1px solid rgba(217, 185, 162, .2); }
+
+    .login { max-width: 360px; margin: 18vh auto; text-align: center; }
+    .login input { width: 100%; margin: 16px 0 8px; }
+
+    input[type=text], input[type=password], input[type=number], select, textarea {
+      font: inherit; color: var(--ivory); background: rgba(28, 6, 9, .7);
+      border: 1px solid rgba(217, 185, 162, .35); border-radius: 10px; padding: 9px 12px;
+    }
+    textarea { width: 100%; min-height: 130px; font-family: Consolas, monospace; font-size: 14px; }
+    select option { color: #000; }
+
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .switch { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 999px;
+      border: 1px solid rgba(217, 185, 162, .35); cursor: pointer; }
+    .switch input { width: 18px; height: 18px; accent-color: var(--gold); }
+    .stat { font-family: var(--font-display); font-size: 44px; color: var(--gold); line-height: 1; }
+    .timer-panel { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 18px;
+      padding: 16px 20px; border: 1px solid rgba(216, 169, 59, .45); border-radius: 14px; }
+    .timer-panel .stat { min-width: 3.2ch; font-variant-numeric: tabular-nums; }
+    .timer-panel input { width: 4.5em; margin: 0 4px; }
+
+    .results { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .runoff { margin: 8px 0 24px; padding: 18px 20px; border-left: 3px solid var(--gold); background: rgba(216, 169, 59, .07); border-radius: 0 12px 12px 0; }
+    .runoff p { margin: 0 0 12px; max-width: 70ch; }
+    .tie { color: var(--gold-soft); margin: 0 0 8px; }
+    .bar-row { display: grid; grid-template-columns: 170px 1fr 48px; gap: 10px; align-items: center; margin: 8px 0; }
+    .bar-row .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar { height: 12px; border-radius: 6px; background: rgba(217, 185, 162, .15); overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--gold); border-radius: 6px; }
+    .bar-row b { text-align: right; font-weight: 500; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th { text-align: left; font-weight: 500; color: var(--muted); font-size: 14px; padding: 8px 6px; }
+    td { padding: 6px; border-top: 1px solid rgba(217, 185, 162, .14); vertical-align: middle; }
+    td input[type=text] { width: 100%; }
+    .thumb { width: 52px; height: 62px; position: relative; flex: none; }
+    .photo-cell { display: flex; align-items: center; gap: 8px; }
+    .photo-cell label { color: var(--gold-soft); cursor: pointer; font-size: 14px; text-decoration: underline; }
+    .photo-cell input[type=file] { display: none; }
+    .thumb .shield { position: absolute; inset: 0; }
+    .thumb .initials { font-size: 18px; }
+    .icon-btn { background: none; border: 0; color: var(--muted); font-size: 20px; padding: 4px 10px; border-radius: 8px; }
+    .icon-btn:hover { color: var(--crimson); }
+    .row-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .msg { min-height: 1.4em; color: var(--gold-soft); margin-top: 10px; }
+    .msg.err { color: #ff9aa3; }
+    .dept-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .dept-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px;
+      border: 1px solid rgba(216, 169, 59, .5); border-radius: 999px; background: rgba(28, 6, 9, .5); }
+    .dept-chip small { color: var(--muted); font-style: italic; }
+    .dept-chip .icon-btn { font-size: 16px; padding: 2px 8px; }
+    .dept-form { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dept-form input { flex: 1; min-width: 220px; max-width: 420px; }
+    td select[data-f="department"] { width: 100%; min-width: 180px; }
+    .paste-grid { display: grid; grid-template-columns: 1fr 260px; gap: 20px; align-items: start; }
+    .paste-grid .side { display: grid; gap: 10px; }
+    @media (max-width: 760px) {
+      .results, .paste-grid { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 120px 1fr 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin" id="app">
+    <form class="login" id="login">
+      <img src="/img/logo.webp" alt="" width="84" height="84" style="margin:0 auto;border-radius:50%">
+      <h2>Удирдлагын хэсэг</h2>
+      <label class="visually-hidden" for="pw">Нууц үг</label>
+      <input type="password" id="pw" placeholder="Нууц үг" autocomplete="current-password" required>
+      <p class="msg err" id="login-msg"></p>
+      <button class="btn" type="submit">Нэвтрэх</button>
+    </form>
+
+    <div id="panel" hidden>
+      <header class="admin-top">
+        <img src="/img/logo.webp" alt="">
+        <h1>Ханхүү, Гүнж 2027 — удирдлага</h1>
+        <a href="/" target="_blank">Санал өгөх хуудас</a>
+        <a href="/reveal" target="_blank">Тодруулах дэлгэц</a>
+        <button class="btn ghost" id="logout" type="button">Гарах</button>
+      </header>
+
+      <section class="block">
+        <h2>Санал хураалт</h2>
+        <p class="hint">Бүгд санал өгсний дараа «Тоолуур эхлүүлэх» дарна. Тоолуур бүх утас болон тодруулах дэлгэц дээр харагдана. Хугацаа дуусахад санал хураалт хаагдаж, хамгийн олон санал авсан ханхүү, гүнж автоматаар тодорно. Тоолуур явж байхад санал өгч амжаагүй хүмүүс санал өгсөөр байж болно.</p>
+        <div class="timer-panel">
+          <div><div class="stat" id="cd-left">—</div><small class="hint" id="cd-label">тоолуур эхлээгүй</small></div>
+          <label class="switch">Хугацаа <input type="number" id="cd-min" min="0.5" max="60" step="0.5" value="2" aria-label="Тоолуурын хугацаа, минутаар"> минут</label>
+          <button class="btn" id="cd-start" type="button">Тоолуур эхлүүлэх</button>
+          <button class="btn ghost" id="cd-stop" type="button" hidden>Тоолуурыг зогсоох</button>
+        </div>
+        <div class="controls">
+          <div><div class="stat" id="total">0</div><small class="hint">хүн санал өгсөн</small></div>
+          <label class="switch"><input type="checkbox" id="s-open"> Санал хураалт нээлттэй</label>
+          <label class="switch"><input type="checkbox" id="s-ip"> Нэг IP хаягаас нэг санал</label>
+          <button class="btn" id="reveal" type="button">Ялагчийг тодруулах</button>
+          <button class="btn danger" id="reset" type="button">Бүх саналыг устгах</button>
+        </div>
+        <p class="msg" id="ctrl-msg"></p>
+        <div class="runoff" id="runoff" hidden></div>
+        <div class="results" id="results"></div>
+      </section>
+
+      <section class="block">
+        <h2>Тэнхимүүд</h2>
+        <p class="hint">Энд бүртгэсэн тэнхимүүд нэр дэвшигчийн хүснэгтэд жагсаалтаар гарна. Сурагчид эхлээд тэнхимээ сонгоод, дараа нь тухайн тэнхимийн нэр дэвшигчээс сонгоно.</p>
+        <ul class="dept-list" id="dept-list"></ul>
+        <form class="dept-form" id="dept-form">
+          <label class="visually-hidden" for="dept-name">Шинэ тэнхимийн нэр</label>
+          <input type="text" id="dept-name" placeholder="Жишээ: Биологийн тэнхим" autocomplete="off">
+          <button class="btn ghost" type="submit">Тэнхим нэмэх</button>
+        </form>
+        <p class="msg" id="dept-msg"></p>
+      </section>
+
+      <section class="block">
+        <h2>Нэр дэвшигчид</h2>
+        <p class="hint">Мөр бүрт тэнхимийг жагсаалтаас сонгоод овог, нэрийг бичнэ. Excel-ээс хуулж буулгаж ч болно. Зураг нэмэхийн тулд «Зураг оруулах» дээр дарна.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Төрөл</th><th>Тэнхим</th><th>Овог</th><th>Нэр</th><th>Зураг</th><th><span class="visually-hidden">Устгах</span></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="row-actions">
+          <button class="btn ghost" type="button" data-add="prince">+ Ханхүү нэмэх</button>
+          <button class="btn ghost" type="button" data-add="princess">+ Гүнж нэмэх</button>
+          <button class="btn" type="button" id="save">Хадгалах</button>
+        </div>
+        <p class="msg" id="save-msg"></p>
+      </section>
+
+      <section class="block">
+        <h2>Хүснэгтээс оруулах</h2>
+        <p class="hint">Excel эсвэл Google Sheets-ээс мөрүүдээ хуулж (Ctrl+C) энд буулгана (Ctrl+V). Багана нь: <b>Тэнхимийн нэр, Овог, Нэр</b>. Эхэнд нь <b>Төрөл</b> (Ханхүү / Гүнж) багана байвал түүнийг ашиглана. CSV файл ч оруулж болно.</p>
+        <div class="paste-grid">
+          <label class="visually-hidden" for="paste">Хүснэгтийн мөрүүд</label>
+          <textarea id="paste" placeholder="Математикийн тэнхим&#9;Батболд&#9;Тэмүүлэн&#10;Физикийн тэнхим&#9;Ганзориг&#9;Билгүүн"></textarea>
+          <div class="side">
+            <label for="paste-role">Төрөл багана байхгүй бол:</label>
+            <select id="paste-role"><option value="prince">Бүгд ханхүү</option><option value="princess">Бүгд гүнж</option></select>
+            <label class="switch"><input type="checkbox" id="paste-replace"> Одоогийн жагсаалтыг солих</label>
+            <label class="btn ghost" style="text-align:center">CSV файл сонгох<input type="file" id="csv" accept=".csv,.txt,.tsv" hidden></label>
+            <button class="btn" type="button" id="import">Хүснэгтэд нэмэх</button>
+          </div>
+        </div>
+        <p class="msg" id="import-msg"></p>
+      </section>
+    </div>
+  </div>
+
+  <script src="/vendor/gsap/gsap.min.js"></script>
+  <script src="/vendor/gsap/DrawSVGPlugin.min.js"></script>
+  <script src="/js/fx.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
