@@ -62,22 +62,117 @@
     $('#total').textContent = data.totalVoters;
     $('#s-open').checked = settings.votingOpen;
     $('#s-ip').checked = settings.onePerIp;
-    $('#reveal').textContent = settings.revealed ? 'Тодруулгыг нуух' : 'Шууд тодруулах';
+    $('#reveal').textContent = settings.revealed ? 'Тодруулгыг нуух' : 'Ханхүү, Гүнж тодруулах';
+    luckyNext = data.guests.guests > 0 && data.lucky.winners === 0;
     deadline = Shine.deadlineFrom(settings.revealAt, data.now);
     if (document.activeElement !== $('#cd-min')) $('#cd-min').value = settings.countdownSeconds / 60;
     tickTimer();
     renderResults(data);
     renderRunoff(data);
+    renderLucky(data.lucky);
+    renderGuests(data.guests);
   }
+
+  // ---------- азтан сугалах ----------
+  // Ганц азтан: тодорсны дараа эргүүлэх товч нуугдаж, азтаны нэр харагдана
+  function renderLucky(l) {
+    const w = l.current;
+    $('#lk-eligible').textContent = l.guests;
+    $('#lk-winner').hidden = !w;
+    if (w) {
+      const done = Shine.deadlineFrom(w.at, l.now) <= Date.now();
+      $('#lk-winner-name').textContent = done ? w.name : '…';
+      $('#lk-winner-table').textContent = done ? `Азтан · Ширээ ${w.table}${w.claimed ? ' · утсаа холбосон' : ''}` : 'хүрд эргэж байна';
+    }
+    $('#lk-draw').hidden = !!w;
+    $('#lk-draw').disabled = !l.eligible;
+    $('#lk-reset').hidden = !w;
+  }
+
+  // ---------- зочдын жагсаалт ----------
+  let guestsDirty = false;
+  function renderGuests(g) {
+    $('#g-total').textContent = g.guests;
+    $('#g-tables').textContent = g.tables;
+    $('#g-linked').textContent = g.linked;
+    $('#g-unlink').hidden = !g.linked;
+    // засаж байх үед 5 секунд тутмын шинэчлэл бичсэнийг дарж бичихгүй
+    if (!guestsDirty) $('#g-paste').value = g.list.map((x) => `${x.table}\t${x.name}`).join('\n');
+  }
+
+  $('#g-paste').addEventListener('input', () => { guestsDirty = true; });
+
+  function parseGuests(text) {
+    const out = [];
+    text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).forEach((line, idx) => {
+      const sep = line.includes('\t') ? '\t' : line.includes(';') ? ';' : ',';
+      const cells = line.split(sep).map((c) => c.trim().replace(/^"(.*)"$/, '$1')).filter(Boolean);
+      if (idx === 0 && /ширээ|table|нэр/i.test(cells[0] || '')) return; // гарчиг мөр
+      if (cells.length < 2) return;
+      out.push({ table: cells[0].replace(/^(ширээ|table)\s*№?\s*/i, ''), name: cells.slice(1).join(' ') });
+    });
+    return out;
+  }
+
+  $('#g-save').addEventListener('click', async () => {
+    const guests = parseGuests($('#g-paste').value);
+    if (!guests.length && $('#g-paste').value.trim()) {
+      return say($('#g-msg'), 'Унших мөр олдсонгүй. Ширээ, нэр гэсэн хоёр баганатай эсэхийг шалгана уу.', true);
+    }
+    if (!guests.length && !confirm('Жагсаалт хоосон байна. Бүх зочдыг устгах уу?')) return;
+    try {
+      guestsDirty = false;
+      applyOverview(await call('/api/admin/guests', { method: 'PUT', body: { guests } }));
+      say($('#g-msg'), `Хадгаллаа — ${guests.length} зочин.`);
+    } catch (err) {
+      guestsDirty = true;
+      say($('#g-msg'), err.message, true);
+    }
+  });
+
+  $('#g-unlink').addEventListener('click', async () => {
+    if (!confirm('Бүх зочны утасны холболтыг цэвэрлэх үү? Зочид ширээ, нэрээ дахин сонгох хэрэгтэй болно.')) return;
+    try {
+      applyOverview(await call('/api/admin/claims-clear', { method: 'POST' }));
+      say($('#g-msg'), 'Утасны холболтыг цэвэрлэлээ.');
+    } catch (err) {
+      say($('#g-msg'), err.message, true);
+    }
+  });
+
+  $('#lk-draw').addEventListener('click', async () => {
+    const btn = $('#lk-draw');
+    btn.disabled = true;
+    try {
+      const l = await call('/api/admin/lucky-draw', { method: 'POST' });
+      renderLucky(l);
+      say($('#lk-msg'), 'Хүрд эргэж байна — проектор дээр харагдана.');
+    } catch (err) {
+      say($('#lk-msg'), err.message, true);
+    } finally {
+      setTimeout(refreshStats, 18500); // хоёр шаттай хүрд дуусахад товч дахин идэвхжинэ
+    }
+  });
+
+  $('#lk-reset').addEventListener('click', async () => {
+    if (!confirm('Тодорсон азтаныг цуцлах уу? Хүрдийг дахин эргүүлж шинэ азтан сонгох боломжтой болно. Энэ үйлдлийг буцаах боломжгүй.')) return;
+    try {
+      renderLucky(await call('/api/admin/lucky-reset', { method: 'POST' }));
+      say($('#lk-msg'), 'Азтаныг цуцаллаа. Хүрдийг дахин эргүүлж болно.');
+    } catch (err) {
+      say($('#lk-msg'), err.message, true);
+    }
+  });
 
   // ---------- тоолуур ----------
   let deadline = null;
+  let luckyNext = false; // тоолуур дуусахад хүрд эргэнэ (шууд тодрохгүй)
   function tickTimer() {
     const running = deadline != null;
     const left = running ? Math.max(0, deadline - Date.now()) : 0;
     $('#cd-left').textContent = running ? Shine.clock(left) : '—';
     $('#cd-label').textContent = running
-      ? 'үлдсэн — дуусахад ялагчид автоматаар тодорно'
+      ? (luckyNext ? 'үлдсэн — дуусахад санал хураалт хаагдаж, хүрд эргэнэ' : 'үлдсэн — дуусахад ялагчид автоматаар тодорно')
       : settings.revealed ? 'ялагчид тодорсон' : 'тоолуур эхлээгүй';
     $('#cd-start').hidden = running;
     $('#cd-stop').hidden = !running;

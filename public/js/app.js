@@ -31,8 +31,15 @@
     candidates = c;
     departments = d;
   });
+  // Зочдын жагсаалт (азтан сугалаанд ширээ, нэрээ сонгоход)
+  let guests = [];
+  let identifying = false; // «Солих» дарсан
+  const SKIP_KEY = 'shine2027-guest-skip';
+  const loadGuests = () => api('/api/guests').then((g) => { guests = g; });
+
   const dataReady = Promise.all([loadLists(), api('/api/status')]).then(([, s]) => {
     state = s;
+    return s.hasGuests ? loadGuests() : null;
   });
 
   // ---------- интро ----------
@@ -74,6 +81,7 @@
     }
     markLocalVote();
     syncTimer();
+    checkLucky(state);
 
     const d = ShineFx.reduceMotion ? 0 : 1.1;
     document.body.classList.add('voting');
@@ -93,12 +101,52 @@
 
     setInterval(poll, 4000);
     setInterval(tickTimer, 250);
+    // утас унтраад асахад азтан болсон эсэхээ шууд мэдэнэ
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
   }
+
+  // ---------- азтан ----------
+  // Сервер зөвхөн азтаны утсанд won=true өгнө. Проектор дээр тодрох мөч (at) хүртэл хүлээгээд гэрэлтэнэ.
+  const luckyKey = (id) => `shine2027-lucky-${id}`;
+  let luckyFor = null;
+  function checkLucky(s) {
+    const l = s.lucky;
+    if (!l || !l.won || luckyFor === l.id || localStorage.getItem(luckyKey(l.id))) return;
+    luckyFor = l.id;
+    const wait = Math.max(0, Shine.deadlineFrom(l.at, s.now) - Date.now());
+    setTimeout(() => showLucky(l), wait);
+  }
+
+  function showLucky(l) {
+    const box = $('#lucky-win');
+    $('#lucky-ticket').innerHTML = Shine.goldTicket({ name: l.name, table: l.table, stub: 'Тайз руу гарч энэ тасалбараа үзүүлээрэй' });
+    box.hidden = false;
+    $('#lucky-win-close').focus({ preventScroll: true });
+    if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 800]);
+    if (ShineFx.reduceMotion) {
+      gsap.from(box, { opacity: 0, duration: 0.3 });
+      return;
+    }
+    // тасалбар доороос эргэлдэн гарч ирээд, гарчиг араас нь бууна
+    gsap.timeline()
+      .from(box, { opacity: 0, duration: 0.3 })
+      .from('#lucky-ticket', { yPercent: 60, rotation: -10, scale: 0.85, opacity: 0, duration: 1, ease: 'expo.out' }, 0.1)
+      .from('#lucky-win h2', { y: -24, opacity: 0, duration: 0.6, ease: 'power3.out' }, 0.5)
+      .from('#lucky-win-close', { opacity: 0, duration: 0.4 }, 1.4);
+    [0.4, 1.3, 2.2].forEach((t) => gsap.delayedCall(t, () => confetti.burst(innerWidth / 2, innerHeight * 0.4, 160)));
+  }
+
+  $('#lucky-win-close').addEventListener('click', () => {
+    localStorage.setItem(luckyKey(luckyFor), '1');
+    $('#lucky-win').hidden = true;
+  });
 
   // ---------- тоолуур ----------
   let deadline = null;
   let lastPollAtZero = 0;
   function syncTimer() {
+    // хүрд эргэх бол тоолуур дуусахад шууд тодрохгүй, санал хураалт л хаагдана
+    $('#timer span').textContent = state.luckyNext ? 'Санал хураалт дуусах хүртэл' : 'Ялагч тодрох хүртэл';
     deadline = state.revealed ? null : Shine.deadlineFrom(state.revealAt, state.now);
     tickTimer();
   }
@@ -133,12 +181,97 @@
   }
 
   function render() {
+    if (identifying || (state.hasGuests && !state.me && !localStorage.getItem(SKIP_KEY))) return renderIdentify();
     if (state.revealed) return renderWinners();
     fireworks.stop(); // тодруулгыг нуусан эсвэл дахин санал хураалт эхэлсэн
     if (state.myVote || state.alreadyVotedHere) return renderThanks();
     if (!state.votingOpen) return renderClosed();
     renderBallot();
   }
+
+  // ---------- та хэн бэ: ширээ → нэр ----------
+  function renderIdentify(table) {
+    hideTray();
+    const tables = [...new Set(guests.map((g) => g.table))]
+      .sort((a, b) => String(a).localeCompare(String(b), 'mn', { numeric: true }));
+    ballot.innerHTML = `
+      <header class="ballot-head">
+        <h2>Та хэн бэ?</h2>
+        <p>Шинэ жилийн азтан сугалаанд таны нэр орсон байна. Ширээ, нэрээ сонговол азтан болох үед алтан тасалбар энэ утсанд гарна.</p>
+      </header>
+      <section class="round" aria-labelledby="h-id">
+        <h3 id="h-id">${table == null ? 'Ширээ' : `Ширээ ${esc(table)}`} <small>${table == null ? 'эхлээд ширээгээ сонгоно' : 'нэрээ сонгоно'}</small></h3>
+        <div class="step" id="id-step"></div>
+        <p class="error-text" id="id-error" role="alert"></p>
+      </section>
+      <p class="id-foot"><button type="button" class="link-btn" id="id-skip">${state.me ? '‹ Буцах' : 'Миний нэр жагсаалтад алга'}</button></p>`;
+    const box = $('#id-step');
+    if (table == null) {
+      box.innerHTML = `<ul class="table-grid">${tables.map((t) => `<li><button type="button" class="table-btn" data-table="${esc(t)}">
+        ${esc(t)}<small>${guests.filter((g) => g.table === t).length} зочин</small></button></li>`).join('')}</ul>`;
+      box.querySelectorAll('[data-table]').forEach((b) => b.addEventListener('click', () => {
+        renderIdentify(b.dataset.table);
+        slideIn($('#id-step'), 1);
+      }));
+    } else {
+      box.innerHTML = `<div class="step-bar"><button type="button" class="back-btn">‹ Ширээ</button></div>
+        <ul class="dept-menu">${guests.filter((g) => g.table === table).map((g) => {
+          const mine = state.me && state.me.id === g.id;
+          return `<li><button type="button" class="dept-item${mine ? ' has-pick' : ''}" data-guest="${g.id}"${g.taken ? ' disabled' : ''}>
+            <span class="dept-name">${esc(g.name)}</span>
+            <span class="dept-meta">${mine ? '<b>✓ Та</b>' : g.taken ? 'өөр утсаар сонгогдсон' : 'энэ би'}</span>
+            <span class="chev" aria-hidden="true">›</span></button></li>`;
+        }).join('')}</ul>`;
+      box.querySelector('.back-btn').addEventListener('click', () => {
+        renderIdentify();
+        slideIn($('#id-step'), -1);
+      });
+      box.querySelectorAll('[data-guest]').forEach((b) => b.addEventListener('click', () => claim(b, table)));
+    }
+    $('#id-skip').addEventListener('click', () => {
+      if (!state.me) localStorage.setItem(SKIP_KEY, '1');
+      identifying = false;
+      render();
+    });
+  }
+
+  async function claim(btn, table) {
+    btn.disabled = true;
+    try {
+      state = await api('/api/guests/claim', { method: 'POST', body: { guestId: btn.dataset.guest } });
+      markLocalVote();
+      identifying = false;
+      localStorage.removeItem(SKIP_KEY);
+      render();
+    } catch (err) {
+      await loadGuests().catch(() => {});
+      renderIdentify(table);
+      $('#id-error').textContent = err.message;
+    }
+  }
+
+  // Санал хураалт хаагдаж, тодруулгын өмнө хүрд эргэж байх үеийн тэмдэглэл
+  function luckyNote() {
+    if (!state.luckyStage) return '';
+    return `<p class="me-line"><b>Одоо азтан сугалж байна — тайз руу хараарай!</b> Хүрд эхлээд ширээ, дараа нь нэр сонгоно.
+      ${state.me ? 'Таны нэр хүрдэнд байгаа — азтан болбол алтан тасалбар энд гарна.' : ''}
+      Ханхүү, гүнжийг хүрдний дараа тодруулна.</p>`;
+  }
+
+  // Санал өгөх, баярлалаа хуудсуудын дээд талд: хэн гэж холбогдсон, солих
+  function meLine() {
+    if (!state.hasGuests) return '';
+    return state.me
+      ? `<p class="me-line">Та: <b>${esc(state.me.name)}</b> · Ширээ ${esc(state.me.table)} · <button type="button" class="link-btn" data-change-me>Солих</button></p>`
+      : `<p class="me-line"><button type="button" class="link-btn" data-change-me>Ширээ, нэрээ сонгох</button> — азтан болбол алтан тасалбар энэ утсанд гарна</p>`;
+  }
+
+  ballot.addEventListener('click', async (e) => {
+    if (!e.target.closest('[data-change-me]')) return;
+    await loadGuests().catch(() => {});
+    identifying = true;
+    render();
+  });
 
   // ---------- санал өгөх хуудас ----------
   function renderBallot() {
@@ -148,6 +281,7 @@
     const names = roles.map((r) => ROLE_LABEL[r].toLowerCase()).join(', ');
     ballot.innerHTML = `
       <header class="ballot-head">
+        ${meLine()}
         <h2>${runoff ? 'Дахин санал хураалт' : 'Ханхүү, Гүнж 2027'}</h2>
         <p>${runoff
           ? `Санал тэнцсэн тул тэнцсэн нэр дэвшигчдээс ${names} сонгоно уу. Энэ шатанд дахин нэг л удаа санал өгнө.`
@@ -334,8 +468,10 @@
     const mine = state.myVote;
     ballot.innerHTML = `
       <div class="notice">
+        ${meLine()}
         <h2>${state.round.n > 1 ? 'Дахин санал хураалтад өгсөн саналаа бүртгүүллээ' : 'Таны санал бүртгэгдлээ'}</h2>
         <p>Баярлалаа! Хамгийн олон санал авсан ханхүү, гүнжийг шинэ жилийн баяр дээр тодруулна. Тодруулсны дараа энэ хуудсанд автоматаар харагдана.</p>
+        ${luckyNote()}
         <div class="my-picks"></div>
       </div>`;
     if (!mine) return;
@@ -353,8 +489,10 @@
     hideTray();
     ballot.innerHTML = `
       <div class="notice">
+        ${meLine()}
         <h2>Санал хураалт хаагдсан</h2>
         <p>Ханхүү, гүнжийг удахгүй тодруулна. Тодруулсны дараа энэ хуудсанд автоматаар харагдана.</p>
+        ${luckyNote()}
       </div>`;
   }
 
@@ -369,6 +507,7 @@
     }
     ballot.innerHTML = `
       <div class="notice">
+        ${meLine()}
         <h2>2027 оны Ханхүү, Гүнж</h2>
         <p>${w.tie.prince || w.tie.princess
           ? `${[w.tie.prince && 'Ханхүүгийн', w.tie.princess && 'Гүнжийн'].filter(Boolean).join(', ')} санал тэнцсэн байна.`
@@ -409,11 +548,15 @@
       state = s;
       markLocalVote();
       syncTimer();
+      checkLucky(s);
       // шинэ шат (дахин санал хураалт) эхэлсэн, эсвэл тодруулга/нээлттэй байдал өөрчлөгдсөн
       const changed = s.revealed !== prev.revealed || s.round.id !== prev.round.id
-        || (s.votingOpen !== prev.votingOpen && !s.myVote && !s.alreadyVotedHere);
-      if (changed) {
+        || (s.votingOpen !== prev.votingOpen && !s.myVote && !s.alreadyVotedHere)
+        || s.hasGuests !== prev.hasGuests // админ зочдын жагсаалт оруулсан/устгасан
+        || s.luckyStage !== prev.luckyStage; // хүрд эхэлсэн/дууссан
+      if (changed && !identifying) {
         if (!s.revealed && s.votingOpen) await loadLists();
+        if (s.hasGuests) await loadGuests();
         render();
       }
     } catch {

@@ -98,13 +98,15 @@
         <img src="/img/logo.webp" alt="">
         <h1>Ханхүү, Гүнж 2027 — удирдлага</h1>
         <a href="/" target="_blank">Санал өгөх хуудас</a>
-        <a href="/reveal" target="_blank">Тодруулах дэлгэц</a>
+        <a href="/reveal" target="_blank">Проекторын дэлгэц</a>
         <button class="btn ghost" id="logout" type="button">Гарах</button>
       </header>
 
       <section class="block">
         <h2>Санал хураалт</h2>
-        <p class="hint">Бүгд санал өгсний дараа «Тоолуур эхлүүлэх» дарна. Тоолуур бүх утас болон тодруулах дэлгэц дээр харагдана. Хугацаа дуусахад санал хураалт хаагдаж, хамгийн олон санал авсан ханхүү, гүнж автоматаар тодорно. Тоолуур явж байхад санал өгч амжаагүй хүмүүс санал өгсөөр байж болно.</p>
+        <p class="hint">Баярын дараалал (бүгд <a href="/reveal" target="_blank">проекторын дэлгэц</a> дээр): <b>1. Санал хураалт → 2. Азтан сугалах хүрд → 3. Ханхүү, Гүнж тодруулга.</b>
+          Бүгд санал өгсний дараа «Тоолуур эхлүүлэх» дарна — тоолуур бүх утас, проектор дээр харагдана, явж байхад санал өгч амжаагүй хүмүүс санал өгсөөр байж болно.
+          Хугацаа дуусахад санал хураалт хаагдаж проектор хүрд рүү шилжинэ (зочдын жагсаалт хоосон бол шууд тодорно). Азтан тодорсны дараа «Ханхүү, Гүнж тодруулах» дарна.</p>
         <div class="timer-panel">
           <div><div class="stat" id="cd-left">—</div><small class="hint" id="cd-label">тоолуур эхлээгүй</small></div>
           <label class="switch">Хугацаа <input type="number" id="cd-min" min="0.5" max="60" step="0.5" value="2" aria-label="Тоолуурын хугацаа, минутаар"> минут</label>
@@ -121,6 +123,33 @@
         <p class="msg" id="ctrl-msg"></p>
         <div class="runoff" id="runoff" hidden></div>
         <div class="results" id="results"></div>
+      </section>
+
+      <section class="block">
+        <h2>Азтан сугалах</h2>
+        <p class="hint">2-р алхам. Доорх жагсаалтын зочин бүр хүрдэнд орно. Санал хураалт хаагдахад проектор хүрд рүү шилжинэ — «Хүрд эргүүлэх» дарна (эндээс, эсвэл проектор дээр Space товч). Хүрд эхлээд ширээ, дараа нь тэр ширээний нэрийг сонгоно (нийт ~18 секунд). Ганц л азтан тодорно. Азтан утсаа холбосон бол утсанд нь алтан тасалбар гарна. Дараа нь дээрх «Ханхүү, Гүнж тодруулах» дарна.</p>
+        <div class="controls">
+          <div><div class="stat" id="lk-eligible">0</div><small class="hint">хүрдэнд орох зочин</small></div>
+          <div id="lk-winner" hidden><div class="stat" id="lk-winner-name"></div><small class="hint" id="lk-winner-table"></small></div>
+          <button class="btn" id="lk-draw" type="button">Хүрд эргүүлэх</button>
+          <button class="btn ghost" id="lk-reset" type="button">Азтаныг цуцлаад дахин сугалах</button>
+        </div>
+        <p class="msg" id="lk-msg"></p>
+
+        <h2 style="margin-top:28px">Зочдын жагсаалт</h2>
+        <p class="hint">Excel-ээс мөрүүдээ хуулж (Ctrl+C) энд буулгана. Багана нь: <b>Ширээ, Нэр</b> эсвэл <b>Ширээ, Овог, Нэр</b>. Хадгалахад жагсаалт бүхэлдээ солигдоно — аль хэдийн утсаа холбосон зочид (ширээ, нэр нь ижил бол) холбоотой хэвээр үлдэнэ. Зочид санал өгөх хуудсан дээр ширээ, нэрээ сонгож утсаа холбоно.</p>
+        <div class="controls" style="margin-bottom:14px">
+          <div><div class="stat" id="g-total">0</div><small class="hint">зочин</small></div>
+          <div><div class="stat" id="g-tables">0</div><small class="hint">ширээ</small></div>
+          <div><div class="stat" id="g-linked">0</div><small class="hint">утсаа холбосон</small></div>
+        </div>
+        <label class="visually-hidden" for="g-paste">Зочдын жагсаалт</label>
+        <textarea id="g-paste" placeholder="1&#9;Батболд Тэмүүлэн&#10;1&#9;Энхтөр Номин&#10;2&#9;Ганзориг Билгүүн"></textarea>
+        <div class="row-actions">
+          <button class="btn" type="button" id="g-save">Жагсаалтыг хадгалах</button>
+          <button class="btn ghost" type="button" id="g-unlink">Утасны холболтыг цэвэрлэх</button>
+        </div>
+        <p class="msg" id="g-msg"></p>
       </section>
 
       <section class="block">

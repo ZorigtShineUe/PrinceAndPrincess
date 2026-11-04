@@ -73,6 +73,65 @@
     }
 
     .reveal-btn { position: fixed; right: calc(var(--edge) + 20px); bottom: 24px; z-index: 40; }
+
+    /* ---------- 2-р хэсэг: азтан сугалах хүрд (санал хураалтын дараа, тодруулгын өмнө) ---------- */
+    .lucky {
+      --wheel-h: min(60vh, 66vw);
+      position: fixed; inset: 0; z-index: 3; display: grid; grid-template-rows: auto 1fr;
+      justify-items: center; text-align: center; visibility: hidden;
+      padding: calc(var(--valance-h) + 2vh) calc(var(--edge) + 3vw) 4vh;
+    }
+    .lucky h2.lk-title {
+      margin: 0; font-family: var(--font-display); font-weight: 400; line-height: 1.05;
+      font-size: clamp(38px, 7vh, 88px);
+      background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lucky .lk-count { margin: .6vh 0 0; font-size: clamp(18px, 2.5vh, 30px); color: var(--muted); font-style: italic; }
+    .lucky .lk-count b { font-family: var(--font-display); font-style: normal; font-weight: 400; color: var(--gold-soft); font-size: 1.5em; margin-right: 8px; }
+    /* тайз: голд нь бөмбөр-хүрд, хоёр талд нь Щелкунчик харуулууд */
+    .arena { position: relative; width: 100%; min-height: 0; }
+    .wheel {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      height: var(--wheel-h); aspect-ratio: 240 / 250; overflow: visible;
+      filter: drop-shadow(0 20px 40px rgba(0, 0, 0, .55));
+    }
+    .wheel text { font-family: var(--font-body); font-weight: 600; pointer-events: none; }
+    .wheel text.num { font-family: var(--font-display); font-weight: 400; }
+    .soldier {
+      position: absolute; height: calc(var(--wheel-h) * .86); aspect-ratio: 140 / 320;
+      top: calc(50% + var(--wheel-h) * .5 - var(--wheel-h) * .86);
+    }
+    .soldier svg { width: 100%; height: 100%; overflow: visible; }
+    .soldier.left { right: calc(50% + var(--wheel-h) * .5 + 2vw); }
+    .soldier.right { left: calc(50% + var(--wheel-h) * .5 + 2vw); transform: scaleX(-1); }
+    .lk-result {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 4vw;
+      visibility: hidden; pointer-events: none; text-align: left;
+    }
+    /* тасалбарын хэмжээ өргөнөөсөө хамаарна (container query) тул өргөнийг заавал өгнө */
+    .lk-result .gold-ticket { width: min(39vh, 30vw); }
+    /* нэр зөвхөн үгийн хооронд таслагдана */
+    .lk-result h3 {
+      margin: 0 0 2vh; max-width: 42vw; font-family: var(--font-display); font-weight: 400; line-height: 1;
+      font-size: clamp(40px, 8.5vh, 112px); text-wrap: balance;
+      background: var(--gilt); -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 8px 30px rgba(0, 0, 0, .6));
+    }
+    .lk-result p { margin: 0; max-width: 24ch; font-size: clamp(20px, 3.2vh, 38px); color: var(--ivory); }
+    .lk-result .lk-kicker {
+      margin: 0 0 1.4vh; color: var(--gold-soft); font-family: var(--font-display);
+      font-size: clamp(22px, 4vh, 48px); letter-spacing: .04em;
+    }
+    .lk-empty {
+      position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
+      color: var(--gold-soft); font-style: italic; font-size: clamp(18px, 2.6vh, 30px);
+    }
+    .reveal-btn kbd { font: inherit; opacity: .6; margin-left: 6px; font-size: .85em; }
+    @media (max-width: 760px) {
+      .soldier { display: none; }
+      .lk-result { flex-direction: column; text-align: center; gap: 2vh; }
+      .lk-result .gold-ticket { width: min(27vh, 60vw); }
+    }
     @media (max-width: 760px) {
       body { overflow: auto; height: auto; }
       .wait { grid-template-columns: 1fr; padding-top: calc(var(--valance-h) + 24px); height: auto; min-height: 100vh; text-align: center; }
@@ -117,7 +176,66 @@
     </div>
   </section>
 
+  <section class="lucky" id="lucky" aria-label="Азтан сугалах">
+    <header>
+      <h2 class="lk-title" id="lk-title">Азтан тодруулах</h2>
+      <p class="lk-count"><b id="lk-count">0</b>зочин · <b id="lk-tables">0</b>ширээ</p>
+    </header>
+
+    <div class="arena">
+      <div class="soldier left" aria-hidden="true"></div>
+      <div class="soldier right" aria-hidden="true"></div>
+
+      <!-- Щелкунчикийн бөмбөр шиг хүрд: хүрээ, гэрэл, дэгээ хөдлөхгүй; дотор тал нь эргэнэ -->
+      <svg class="wheel" id="wheel" viewBox="-120 -130 240 250" role="img" aria-label="Азтан сугалах хүрд">
+        <defs>
+          <radialGradient id="hub-gold" cx=".4" cy=".35" r=".8">
+            <stop offset="0" stop-color="#fff1c2"/><stop offset=".5" stop-color="#e2b955"/><stop offset="1" stop-color="#9c6a22"/>
+          </radialGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <clipPath id="hub-clip"><circle r="19"/></clipPath>
+        </defs>
+        <circle r="112" fill="#7d1121" stroke="#e2b955" stroke-width="2.5"/>
+        <polyline id="cord" fill="none" stroke="#e2b955" stroke-width="1.8" stroke-linejoin="round"/>
+        <g id="bulbs"></g>
+        <circle r="97" fill="none" stroke="#e2b955" stroke-width="3"/>
+        <g id="face">
+          <g id="spinner">
+            <g id="slices"></g>
+            <path id="win-slice" fill="#f2d48a" filter="url(#glow)" opacity="0"/>
+            <g id="labels"></g>
+            <g id="pegs"></g>
+          </g>
+        </g>
+        <circle r="29" fill="url(#hub-gold)" stroke="#7d1121" stroke-width="2"/>
+        <circle r="21" fill="#f7ecd8"/>
+        <image href="/img/logo.webp" x="-19" y="-19" width="38" height="38" clip-path="url(#hub-clip)"/>
+        <g id="pointer">
+          <path d="M-8 -112 L0 -86 L8 -112 Z" fill="url(#hub-gold)" stroke="#7d1121" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cy="-117" r="10" fill="url(#hub-gold)" stroke="#7d1121" stroke-width="1.5"/>
+          <circle cy="-117" r="4.2" fill="#c8283d"/>
+        </g>
+      </svg>
+
+      <div class="lk-result" id="lk-result" aria-live="assertive">
+        <div id="lk-ticket"></div>
+        <div>
+          <p class="lk-kicker" id="lk-result-table"></p>
+          <h3 id="lk-result-name"></h3>
+          <p id="lk-result-text"></p>
+        </div>
+      </div>
+
+      <p class="lk-empty" id="lk-empty" hidden>Зочдын жагсаалтыг /admin хуудсан дээр оруулна уу</p>
+    </div>
+  </section>
+
   <button class="btn reveal-btn" id="reveal-btn" type="button" hidden>Тоолуур эхлүүлэх</button>
+  <button class="btn reveal-btn" id="lk-draw" type="button" hidden>Хүрд эргүүлэх<kbd>Space</kbd></button>
+  <button class="btn reveal-btn" id="lk-next" type="button" hidden>Ханхүү, Гүнж тодруулах ›</button>
 
   <div class="curtains" aria-hidden="true">
     <div class="curtain left"></div>
@@ -138,6 +256,7 @@
   <script src="/js/curtains.js"></script>
   <script src="/js/tree-svg.js"></script>
   <script src="/js/tree.js"></script>
+  <script src="/js/lucky.js"></script>
   <script src="/js/reveal.js"></script>
 </body>
 </html>

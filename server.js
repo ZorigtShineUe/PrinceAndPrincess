@@ -52,7 +52,7 @@ const server = http.createServer(async (req, res) => {
       return f ? sendFile(res, f) : notFound(res);
     }
     let rel = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
-    if (rel === 'admin' || rel === 'reveal') rel += '.html';
+    if (rel === 'admin' || rel === 'reveal' || rel === 'lucky') rel += '.html';
     const f = safeJoin(PUBLIC_DIR, rel);
     return f ? sendFile(res, f) : notFound(res);
   } catch {

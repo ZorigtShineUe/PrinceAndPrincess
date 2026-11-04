@@ -1,5 +1,7 @@
-// Проектор дээрх тодруулах дэлгэц: санал тоологдож буйг харуулаад,
-// админ тодруулахад 3-2-1 тоолоод ханхүү, дараа нь гүнжийг титэмтэй нь гаргана.
+// Проектор дээрх тодруулах дэлгэц — баярын дарааллаар гурван хэсэгтэй:
+//   1. санал хураалт (мод, санал өгсөн хүний тоо, тоолуур)
+//   2. азтан сугалах хүрд (lucky.js) — санал хураалт хаагдаж, зочдын жагсаалт байвал
+//   3. тодруулга — админ тодруулахад 3-2-1 тоолоод ханхүү, дараа нь гүнжийг титэмтэй нь гаргана.
 (function () {
   const { api, candidateEl, markChosen } = Shine;
   const $ = (s) => document.querySelector(s);
@@ -20,13 +22,17 @@
     gsap.delayedCall(0.9, () => tree.play());
   }
 
-  let shown = null; // одоо харагдаж буй төлөв: 'wait' | 'final'
+  let shown = null; // одоо харагдаж буй төлөв: 'wait' | 'lucky' | 'final'
   let playing = false;
+
+  ShineLucky.init({ confetti, fireworks, onNext: () => poll() });
 
   async function poll() {
     try {
       const s = await api('/api/status');
       $('#count').textContent = s.totalVoters;
+      // тоолуур дуусахад шууд тодрохгүй, хүрд эргэх бол
+      $('#big-timer span').textContent = s.luckyNext ? 'Санал хураалт дуусах хүртэл' : 'Ялагч тодрох хүртэл';
       const note = $('#round-note');
       note.hidden = s.round.n < 2;
       if (s.round.n > 1) {
@@ -36,9 +42,11 @@
       const timerWasRunning = deadline != null;
       deadline = s.revealed ? null : Shine.deadlineFrom(s.revealAt, s.now);
       tickTimer();
-      // тоолуураар тодорсон бол тоолуур өөрөө 0 хүрсэн тул 3-2-1-ийг алгасна
-      if (s.revealed && shown !== 'final' && !playing) await showWinners(shown === 'wait', timerWasRunning);
-      if (!s.revealed && shown !== 'wait') showWait();
+      if (playing) return;
+      // тоолуураар шууд тодорсон бол тоолуур өөрөө 0 хүрсэн тул 3-2-1-ийг алгасна
+      if (s.revealed && shown !== 'final') await showWinners(shown != null, shown === 'wait' && timerWasRunning);
+      else if (!s.revealed && s.luckyStage && shown !== 'lucky') showLucky(shown != null);
+      else if (!s.revealed && !s.luckyStage && shown !== 'wait') showWait();
     } catch { /* дахин оролдоно */ }
   }
 
@@ -64,9 +72,28 @@
   function showWait() {
     shown = 'wait';
     fireworks.stop();
+    ShineLucky.leave();
     gsap.to('#final', { autoAlpha: 0, duration: 0.5 });
     gsap.to('#wait', { autoAlpha: 1, duration: 0.8 });
     tickTimer();
+  }
+
+  // Санал хураалт хаагдлаа → хөшиг хаагдаж, нээгдэхэд тайзан дээр азтан сугалах хүрд
+  function showLucky(dramatic) {
+    playing = true;
+    shown = 'lucky';
+    fireworks.stop();
+    tickTimer();
+    const tl = gsap.timeline({ onComplete: () => { playing = false; } });
+    if (dramatic && !reduce) {
+      tl.add(ShineCurtains.close(1.4), 0)
+        .to(['#wait', '#final'], { autoAlpha: 0, duration: 0.6 }, 0.8)
+        .call(() => ShineLucky.enter())
+        .add(ShineCurtains.open(2.2), '+=0.4');
+    } else {
+      tl.to(['#wait', '#final'], { autoAlpha: 0, duration: 0.5 })
+        .call(() => ShineLucky.enter());
+    }
   }
 
   async function showWinners(dramatic, fromTimer) {
@@ -101,7 +128,8 @@
     if (dramatic && !reduce) {
       // хөшиг хаагдаж, хилэн дээр 3-2-1 гараад, хөшиг нээгдэхэд ялагчид тайзан дээр байна
       tl.add(ShineCurtains.close(1.4), 0)
-        .to('#wait', { autoAlpha: 0, duration: 0.6 }, 0.8);
+        .to('#wait', { autoAlpha: 0, duration: 0.6 }, 0.8)
+        .call(() => ShineLucky.leave(), null, 0.8);
       for (const n of fromTimer ? [] : ['3', '2', '1']) {
         tl.call(() => { $('#countdown').textContent = n; })
           .set('#countdown', { autoAlpha: 1 })
@@ -113,6 +141,7 @@
         .add(ShineCurtains.open(2.4))
         .from('#final h2', { opacity: 0, y: -20, duration: 0.6 }, '-=1.4');
     } else {
+      ShineLucky.leave();
       tl.to('#wait', { autoAlpha: 0, duration: 0.6 })
         .set('#final', { autoAlpha: 1 })
         .from('#final h2', { opacity: 0, y: -20, duration: 0.6 });

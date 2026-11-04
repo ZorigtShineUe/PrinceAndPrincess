@@ -99,10 +99,47 @@
     return `${c.lastName ? c.lastName.charAt(0) + '. ' : ''}${c.firstName}`;
   }
 
+  // Алтан тасалбар: булангууд нь хонхойсон, доод хэсэгт нь цоолтуурын шугамтай (300×440)
+  const TICKET_D = 'M16 0H284A16 16 0 0 0 300 16V316A14 14 0 0 0 300 344V424A16 16 0 0 0 284 440'
+    + 'H16A16 16 0 0 0 0 424V344A14 14 0 0 0 0 316V16A16 16 0 0 0 16 0Z';
+  let ticketUid = 0;
+  function goldTicket({ name, table, stub }) {
+    const id = `gt${++ticketUid}`;
+    return `<div class="gold-ticket${name ? ' named' : ''}">
+      <svg class="gt-shape" viewBox="0 0 300 440" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="${id}-foil" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b07f2c"/><stop offset=".22" stop-color="#f8e4a6"/>
+            <stop offset=".45" stop-color="#d8a93b"/><stop offset=".68" stop-color="#fff1c2"/>
+            <stop offset="1" stop-color="#a8752a"/>
+          </linearGradient>
+          <linearGradient id="${id}-shine" x1="0" x2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".7"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="${id}-clip"><path d="${TICKET_D}"/></clipPath>
+        </defs>
+        <path d="${TICKET_D}" fill="url(#${id}-foil)"/>
+        <g clip-path="url(#${id}-clip)"><rect class="gt-shine" x="-220" y="-20" width="120" height="480" fill="url(#${id}-shine)"/></g>
+        <rect x="18" y="18" width="264" height="292" rx="10" fill="none" stroke="#7d1121" stroke-opacity=".5" stroke-width="1.6"/>
+        <rect x="25" y="25" width="250" height="278" rx="7" fill="none" stroke="#7d1121" stroke-opacity=".25"/>
+        <line x1="22" y1="330" x2="278" y2="330" stroke="#7d1121" stroke-opacity=".55" stroke-width="2" stroke-dasharray="7 6"/>
+      </svg>
+      <div class="gt-main">
+        <span class="gt-kicker">Шинэ жил 2027</span>
+        <svg class="gt-crown" viewBox="0 0 46 28" aria-hidden="true"><path d="${CROWN_D}"/></svg>
+        <strong class="gt-title">Алтан<br>тасалбар</strong>
+        ${name ? `<span class="gt-name">${esc(name)}</span>` : ''}
+        <span class="gt-n">${table ? `Ширээ ${esc(table)} · Азтан` : 'Шинэ жилийн азтан'}</span>
+      </div>
+      <div class="gt-stub">${esc(stub)}</div>
+    </div>`;
+  }
+
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
 
   gsap.registerPlugin(DrawSVGPlugin);
-  window.Shine = { api, candidateEl, markChosen, fullName, esc, ensureShieldClip, deadlineFrom, clock };
+  window.Shine = { api, candidateEl, markChosen, fullName, esc, ensureShieldClip, deadlineFrom, clock, goldTicket };
 })();
