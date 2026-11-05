@@ -106,14 +106,16 @@
   }
 
   // ---------- азтан ----------
-  // Сервер зөвхөн азтаны утсанд won=true өгнө. Проектор дээр тодрох мөч (at) хүртэл хүлээгээд гэрэлтэнэ.
+  // Сервер зөвхөн азтаны утсанд won=true өгнө. Хүрд at-д зогсоод заагч тайвшрахыг хүлээж,
+  // проектор тасалбараа ойролцоогоор TICKET_LAG-ийн дараа гаргана — утас тэр мөчид гэрэлтэнэ.
+  const TICKET_LAG = 2800;
   const luckyKey = (id) => `shine2027-lucky-${id}`;
   let luckyFor = null;
   function checkLucky(s) {
     const l = s.lucky;
     if (!l || !l.won || luckyFor === l.id || localStorage.getItem(luckyKey(l.id))) return;
     luckyFor = l.id;
-    const wait = Math.max(0, Shine.deadlineFrom(l.at, s.now) - Date.now());
+    const wait = Math.max(0, Shine.deadlineFrom(l.at, s.now) + TICKET_LAG - Date.now());
     setTimeout(() => showLucky(l), wait);
   }
 

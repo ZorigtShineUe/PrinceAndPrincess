@@ -340,10 +340,10 @@ body.has-timer .ballot { padding-top: calc(var(--valance-h) + 170px); } /* то�
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 12%;
 }
 .gt-kicker { font-size: 4.4cqi; letter-spacing: .32em; text-transform: uppercase; font-weight: 600; }
-.gt-crown { width: 20cqi; margin: 5cqi 0 3cqi; fill: #7d1121; }
+.gt-sleigh { width: 76cqi; margin: 3cqi 0 2cqi; color: #7d1121; overflow: visible; }
 .gt-title { font-family: var(--font-display); font-weight: 400; font-size: 15cqi; line-height: .95; }
 .gt-n { margin-top: 5cqi; font-size: 6.4cqi; font-style: italic; }
-.gold-ticket.named .gt-crown { margin: 3cqi 0 2cqi; }
+.gold-ticket.named .gt-sleigh { width: 74cqi; margin: 1.5cqi 0 1cqi; }
 .gold-ticket.named .gt-title { font-size: 8.5cqi; }
 .gt-name { margin-top: 5cqi; font-family: var(--font-display); font-size: 10cqi; line-height: 1.05; text-wrap: balance; overflow-wrap: break-word; }
 

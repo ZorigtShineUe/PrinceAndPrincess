@@ -97,13 +97,13 @@
     }
     .wheel text { font-family: var(--font-body); font-weight: 600; pointer-events: none; }
     .wheel text.num { font-family: var(--font-display); font-weight: 400; }
-    .soldier {
-      position: absolute; height: calc(var(--wheel-h) * .86); aspect-ratio: 140 / 320;
-      top: calc(50% + var(--wheel-h) * .5 - var(--wheel-h) * .86);
+    .figure {
+      position: absolute; height: calc(var(--wheel-h) * .9);
+      top: calc(50% + var(--wheel-h) * .5 - var(--wheel-h) * .9);
     }
-    .soldier svg { width: 100%; height: 100%; overflow: visible; }
-    .soldier.left { right: calc(50% + var(--wheel-h) * .5 + 2vw); }
-    .soldier.right { left: calc(50% + var(--wheel-h) * .5 + 2vw); transform: scaleX(-1); }
+    .figure svg { width: 100%; height: 100%; overflow: visible; }
+    .figure.tree { aspect-ratio: 220 / 360; right: calc(50% + var(--wheel-h) * .5 + 1vw); }
+    .figure.soldier { aspect-ratio: 160 / 360; left: calc(50% + var(--wheel-h) * .5 + 2vw); }
     .lk-result {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 4vw;
       visibility: hidden; pointer-events: none; text-align: left;
@@ -128,7 +128,7 @@
     }
     .reveal-btn kbd { font: inherit; opacity: .6; margin-left: 6px; font-size: .85em; }
     @media (max-width: 760px) {
-      .soldier { display: none; }
+      .figure { display: none; }
       .lk-result { flex-direction: column; text-align: center; gap: 2vh; }
       .lk-result .gold-ticket { width: min(27vh, 60vw); }
     }
@@ -183,8 +183,8 @@
     </header>
 
     <div class="arena">
-      <div class="soldier left" aria-hidden="true"></div>
-      <div class="soldier right" aria-hidden="true"></div>
+      <div class="figure tree" aria-hidden="true"></div>
+      <div class="figure soldier" aria-hidden="true"></div>
 
       <!-- Щелкунчикийн бөмбөр шиг хүрд: хүрээ, гэрэл, дэгээ хөдлөхгүй; дотор тал нь эргэнэ -->
       <svg class="wheel" id="wheel" viewBox="-120 -130 240 250" role="img" aria-label="Азтан сугалах хүрд">
